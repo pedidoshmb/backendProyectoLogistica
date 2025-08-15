@@ -15,4 +15,6 @@ router.put("/:id", usuariosController.updateUsuario);
 // Inactivar usuario
 router.put("/inactivar/:id", usuariosController.inactivarUsuario);
 
+router.post("/login", usuariosController.login);
+
 module.exports = router;

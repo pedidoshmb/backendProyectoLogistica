@@ -1,5 +1,44 @@
 const db = require("../config/db"); // tu conexión a MySQL
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+const SECRET_KEY = "mi_clave_secreta_super_segura";
+
+exports.login = (req, res) => {
+  const { usuario, password } = req.body;
+
+  if (!usuario || !password) {
+    return res
+      .status(400)
+      .json({ message: "Usuario y contraseña son requeridos" });
+  }
+
+  db.query(
+    "SELECT * FROM usuarios WHERE usuario = ?",
+    [usuario],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err });
+      if (results.length === 0)
+        return res.status(401).json({ message: "Credenciales inválidas" });
+
+      const user = results[0];
+      // Suponiendo que en la BD guardas password hasheado en user.password_hash
+      bcrypt.compare(password, user.password_hash, (err, isMatch) => {
+        if (err) return res.status(500).json({ error: err });
+        if (!isMatch)
+          return res.status(401).json({ message: "Credenciales inválidas" });
+
+        const token = jwt.sign(
+          { id: user.id, usuario: user.usuario },
+          SECRET_KEY,
+          { expiresIn: "2h" }
+        );
+
+        res.json({ message: "Login exitoso", token });
+      });
+    }
+  );
+};
 
 // Listar usuarios
 exports.getAllUsuarios = (req, res) => {

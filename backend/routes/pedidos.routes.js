@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const pedidosController = require("../controllers/pedidos.controller");
+const authenticateToken = require("../middlewares/auth");
+
+// Proteger todas las rutas de pedidos
+router.use(authenticateToken);
 
 // Rutas de pedidos
 router.get("/", pedidosController.getAllPedidos);
