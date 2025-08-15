@@ -67,3 +67,19 @@ exports.deleteCliente = (req, res) => {
     res.json({ message: "Cliente eliminado con éxito" });
   });
 };
+
+// Buscar clientes por nombre
+exports.buscarClientes = (req, res) => {
+  const { q } = req.query;
+
+  const sql = `
+    SELECT * FROM clientes
+    WHERE nombre LIKE ?
+  `;
+  const valorBusqueda = `%${q}%`;
+
+  db.query(sql, [valorBusqueda], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(results);
+  });
+};
