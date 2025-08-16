@@ -3,12 +3,13 @@ const db = require("../config/db");
 // Obtener todos los pedidos con información de cliente, estado y usuario
 exports.getAllPedidos = (req, res) => {
   const sql = `
-        SELECT p.*, c.nombre AS cliente_nombre, e.descripcion_estado, u.nombre AS usuario_nombre
-        FROM pedidos p
-        JOIN clientes c ON p.id_clientes = c.id
-        JOIN estados e ON p.id_estado = e.id
-        JOIN usuarios u ON p.usuario_id = u.id
-    `;
+    SELECT p.*, c.nombre AS cliente_nombre, e.descripcion_estado, u.nombre AS usuario_nombre
+    FROM pedidos p
+    LEFT JOIN clientes c ON p.id_cliente = c.id
+    LEFT JOIN estados e ON p.id_estado = e.id
+    LEFT JOIN usuarios u ON p.usuario_id = u.id
+  `;
+
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ error: err });
     res.json(results);
@@ -21,7 +22,7 @@ exports.getPedidoById = (req, res) => {
   const sql = `
         SELECT p.*, c.nombre AS cliente_nombre, e.descripcion_estado, u.nombre AS usuario_nombre
         FROM pedidos p
-        JOIN clientes c ON p.id_clientes = c.id
+        JOIN clientes c ON p.id_cliente = c.id
         JOIN estados e ON p.id_estado = e.id
         JOIN usuarios u ON p.usuario_id = u.id
         WHERE p.id = ?
@@ -36,8 +37,10 @@ exports.getPedidoById = (req, res) => {
 
 // Crear un pedido (fecha de registro automática)
 exports.createPedido = (req, res) => {
+  console.log("📦 Datos recibidos en createPedido:", req.body); // 👈 Depuración
+
   const {
-    id_clientes,
+    id_cliente,
     nit,
     num_pedido,
     numero_items,
@@ -45,20 +48,21 @@ exports.createPedido = (req, res) => {
     auditor,
     id_estado,
     fecha_hora_entrega_ventas,
+    fecha_entrega_cliente,
     usuario_id,
   } = req.body;
 
   const sql = `
-        INSERT INTO pedidos (
-            id_clientes, nit, num_pedido, FechaRegistro, numero_items, separador, auditor, 
-            id_estado, fecha_hora_entrega_ventas, usuario_id
-        ) VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?)
-    `;
+    INSERT INTO pedidos (
+      id_cliente, nit, num_pedido, fecha_registro, numero_items, separador, auditor, 
+      id_estado, fecha_hora_entrega_ventas, fecha_entrega_cliente,usuario_id
+    ) VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?)
+  `;
 
   db.query(
     sql,
     [
-      id_clientes,
+      id_cliente,
       nit,
       num_pedido,
       numero_items,
@@ -66,10 +70,14 @@ exports.createPedido = (req, res) => {
       auditor,
       id_estado,
       fecha_hora_entrega_ventas,
+      fecha_entrega_cliente,
       usuario_id,
     ],
     (err, result) => {
-      if (err) return res.status(500).json({ error: err });
+      if (err) {
+        console.error("❌ Error al insertar pedido:", err.sqlMessage);
+        return res.status(500).json({ error: err.sqlMessage });
+      }
       res.json({ message: "Pedido creado con éxito", id: result.insertId });
     }
   );
@@ -79,7 +87,7 @@ exports.createPedido = (req, res) => {
 exports.updatePedido = (req, res) => {
   const { id } = req.params;
   const {
-    id_clientes,
+    id_cliente,
     nit,
     num_pedido,
     numero_items,
@@ -87,20 +95,21 @@ exports.updatePedido = (req, res) => {
     auditor,
     id_estado,
     fecha_hora_entrega_ventas,
+    fecha_entrega_cliente,
     usuario_id,
   } = req.body;
 
   const sql = `
         UPDATE pedidos SET
-            id_clientes = ?, nit = ?, num_pedido = ?, numero_items = ?, separador = ?, auditor = ?,
-            id_estado = ?, fecha_hora_entrega_ventas = ?, usuario_id = ?
+            id_cliente = ?, nit = ?, num_pedido = ?, numero_items = ?, separador = ?, auditor = ?,
+            id_estado = ?, fecha_hora_entrega_ventas = ?, fecha_entrega_cliente = ?,usuario_id = ?
         WHERE id = ?
     `;
 
   db.query(
     sql,
     [
-      id_clientes,
+      id_cliente,
       nit,
       num_pedido,
       numero_items,
@@ -108,6 +117,7 @@ exports.updatePedido = (req, res) => {
       auditor,
       id_estado,
       fecha_hora_entrega_ventas,
+      fecha_entrega_cliente,
       usuario_id,
       id,
     ],

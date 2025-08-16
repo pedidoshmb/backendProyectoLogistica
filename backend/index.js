@@ -17,6 +17,7 @@ app.use("/usuarios", require("./routes/usuarios.routes"));
 app.use("/estados", require("./routes/estados.routes"));
 app.use("/transporte", require("./routes/transporte.routes"));
 app.use("/entregas", require("./routes/entregas.routes"));
+app.use("/usuarios_bodega", require("./routes/usuariosBodega.routes"));
 
 // Iniciar servidor
 app.listen(5000, () => {
