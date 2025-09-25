@@ -1,0 +1,13 @@
+const express = require("express");
+const router = express.Router();
+const clientesController = require("../controllers/clientes.controller");
+
+// Rutas de clientes
+router.get("/buscar", clientesController.buscarClientes);
+router.get("/", clientesController.getAllClientes);
+router.get("/:id", clientesController.getClienteById);
+router.post("/", clientesController.createCliente);
+router.put("/:id", clientesController.updateCliente);
+router.delete("/:id", clientesController.deleteCliente);
+
+module.exports = router;
